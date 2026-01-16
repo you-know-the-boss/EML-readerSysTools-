@@ -561,7 +561,20 @@ Received: from unknown (10.0.0.1)
                     } 
                 } 
  
-                const text = responseData.candidates[0].content.parts[0].text; 
+                if (!responseData.candidates || responseData.candidates.length === 0) {
+                    throw new Error("No response candidates returned. The request might have been blocked.");
+                }
+
+                const candidate = responseData.candidates[0];
+                if (candidate.finishReason !== "STOP" && !candidate.content) {
+                     throw new Error(`Generation stopped: ${candidate.finishReason}`);
+                }
+
+                if (!candidate.content || !candidate.content.parts || candidate.content.parts.length === 0) {
+                    throw new Error("No content text returned.");
+                }
+
+                const text = candidate.content.parts[0].text;
                  
                 // Format Output 
                 if (isCode) { 
@@ -570,12 +583,16 @@ Received: from unknown (10.0.0.1)
                     resultDiv.textContent = cleanCode; 
                 } else { 
                     // Use Marked.js for markdown rendering 
-                    resultDiv.innerHTML = marked.parse(text); 
+                    if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
+                        resultDiv.innerHTML = marked.parse(text);
+                    } else {
+                        resultDiv.textContent = text; // Fallback
+                    }
                 } 
  
             } catch (error) { 
                 console.error("Gemini Error:", error); 
-                resultDiv.innerHTML = `<span class="text-red-400">Error: Could not connect to AI service. Please try again.</span>`; 
+                resultDiv.innerHTML = `<span class="text-red-400">Error: ${error.message || "Could not connect to AI service."} Please try again.</span>`;
             } finally { 
                 btn.disabled = false; 
                 btnSpan.textContent = originalBtnText; 
