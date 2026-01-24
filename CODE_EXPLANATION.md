@@ -56,7 +56,7 @@ Static data is stored in constant arrays to simulate a database.
 This is the most complex function.
 *   **Input**: Takes a prompt, output element ID, and button ID.
 *   **API Call**: Sends a POST request to `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`.
-*   **Error Handling**: Implements a retry mechanism with exponential backoff (retries up to 3 times if the request fails).
+*   **Error Handling**: If the connection fails, it automatically tries again a few times, waiting a little longer each time (like redialing a phone number if the line is busy).
 *   **Output Processing**: Uses `marked.parse()` to render the AI's Markdown response as HTML, or displays raw text for code scenarios.
 
 #### 4. Chart Initialization
